@@ -34,14 +34,13 @@ object MainSpec extends ZIOSpecDefault:
     suite("bla")(
       test("zio-redis"):
         Live.live:
-          for
-            aredis <- ZIO.service[AsyncRedis]
-            _ <- input
+          ZIO.serviceWithZIO[AsyncRedis]: aredis =>
+            input
               .mapChunksZIO(_.mapZIO(i => aredis.set(i, i)))
               .bufferChunks(1)
               .mapChunksZIO(_.mapZIO(identity))
               .runDrain
-          yield assertTrue(true)
+              .as(assertTrue(true))
       ,
       test("jedis"):
         Live.live:
