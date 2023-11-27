@@ -33,27 +33,25 @@ object MainSpec extends ZIOSpecDefault:
   override def spec: Spec[TestEnvironment, Any] =
     suite("bla")(
       test("zio-redis"):
-        Live.live:
-          ZIO.serviceWithZIO[AsyncRedis]: aredis =>
-            input
-              .mapChunksZIO(_.mapZIO(i => aredis.set(i, i)))
-              .bufferChunks(1)
-              .mapChunksZIO(_.mapZIO(identity))
-              .runDrain
-              .as(assertTrue(true))
+        ZIO.serviceWithZIO[AsyncRedis]: aredis =>
+          input
+            .mapChunksZIO(_.mapZIO(i => aredis.set(i, i)))
+            .bufferChunks(1)
+            .mapChunksZIO(_.mapZIO(identity))
+            .runDrain
+            .as(assertTrue(true))
       ,
       test("jedis"):
-        Live.live:
-          ZIO.serviceWithZIO[Jedis]: jedis =>
-            input
-              .mapChunksZIO: chunk =>
-                ZIO.scoped:
-                  ZIO
-                    .fromAutoCloseable(ZIO.succeed(jedis.pipelined()))
-                    .flatMap: pipeline =>
-                      chunk.mapZIO(i => ZIO.succeed(pipeline.set(i.toString, i.toString)))
-              .runDrain
-              .as(assertTrue(true))
+        ZIO.serviceWithZIO[Jedis]: jedis =>
+          input
+            .mapChunksZIO: chunk =>
+              ZIO.scoped:
+                ZIO
+                  .fromAutoCloseable(ZIO.succeed(jedis.pipelined()))
+                  .flatMap: pipeline =>
+                    chunk.mapZIO(i => ZIO.succeed(pipeline.set(i.toString, i.toString)))
+            .runDrain
+            .as(assertTrue(true))
     )
       .provideSomeShared[TestEnvironment](
         redisContainerLayer,
