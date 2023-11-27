@@ -28,7 +28,7 @@ object MainSpec extends ZIOSpecDefault:
     ZIO.serviceWithZIO[RedisConfig]: cfg =>
       ZIO.fromAutoCloseable(ZIO.attemptBlocking(Jedis(cfg.host, cfg.port)))
 
-  val input = ZStream.range(1, 1024 * 1024, ChunkSize)
+  val input = ZStream.range(0, 1024 * 1024, ChunkSize)
 
   override def spec: Spec[TestEnvironment, Any] =
     suite("bla")(
